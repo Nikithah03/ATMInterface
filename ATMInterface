@@ -1,0 +1,188 @@
+package Sorting;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Record {
+    private String category; // Deposit, Withdrawal, Transfer
+    private double value;
+    private double newBalance;
+
+    public Record(String category, double value, double newBalance) {
+        this.category = category;
+        this.value = value;
+        this.newBalance = newBalance;
+    }
+
+    @Override
+    public String toString() {
+        return category + ": $" + value + " | Balance After: $" + newBalance;
+    }
+}
+
+class UserAccount {
+    private double funds;
+    private int securityCode;
+    private String accNumber;
+    private String holderName;
+    private ArrayList<Record> history;
+
+    public UserAccount(double initialFunds, int securityCode, String accNumber, String holderName) {
+        this.funds = initialFunds;
+        this.securityCode = securityCode;
+        this.accNumber = accNumber;
+        this.holderName = holderName;
+        this.history = new ArrayList<>();
+    }
+
+    public boolean verifySecurityCode(int inputCode) {
+        return this.securityCode == inputCode;
+    }
+
+    public void updateSecurityCode(int newCode) {
+        this.securityCode = newCode;
+        System.out.println("Security code successfully updated to " + newCode);
+    }
+
+    public double checkFunds() {
+        return funds;
+    }
+
+    public String fetchAccNumber() {
+        return accNumber;
+    }
+
+    public String fetchHolderName() {
+        return holderName;
+    }
+
+    public ArrayList<Record> fetchHistory() {
+        return history;
+    }
+
+    public void addFunds(double value) {
+        if (value > 0) {
+            funds += value;
+            history.add(new Record("Deposit", value, funds));
+            System.out.println("Successfully added $" + value);
+        } else {
+            System.out.println("Invalid deposit amount.");
+        }
+    }
+
+    public void removeFunds(double value) {
+        if (value > 0 && value <= funds) {
+            funds -= value;
+            history.add(new Record("Withdrawal", value, funds));
+            System.out.println("Successfully withdrawn $" + value);
+        } else {
+            System.out.println("Insufficient funds or invalid amount.");
+        }
+    }
+
+    public boolean sendFunds(double value, String recipientAcc) {
+        if (value > 0 && value <= funds) {
+            funds -= value;
+            history.add(new Record("Transfer to " + recipientAcc, value, funds));
+            System.out.println("Successfully sent $" + value + " to account " + recipientAcc);
+            return true;
+        } else {
+            System.out.println("Insufficient funds or invalid amount.");
+            return false;
+        }
+    }
+}
+
+public class ATMInterface {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        UserAccount user = new UserAccount(15000.0, 5678, "ACC987654", "Nikitha");
+
+        System.out.print("Enter your security code: ");
+        int enteredCode = scanner.nextInt();
+        if (!user.verifySecurityCode(enteredCode)) {
+            System.out.println("Invalid security code. Exiting...");
+            scanner.close();
+            return;
+        }
+
+        while (true) {
+            System.out.println("\n=== Bank Menu ===");
+            System.out.println("1. View Funds");
+            System.out.println("2. Add Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("4. Transfer Funds");
+            System.out.println("5. View Transactions");
+            System.out.println("6. Recent Transactions");
+            System.out.println("7. Update Security Code");
+            System.out.println("8. Account Info");
+            System.out.println("9. Exit");
+            System.out.print("Choose an option: ");
+            int option = scanner.nextInt();
+
+            switch (option) {
+                case 1:
+                    System.out.println("Available balance: $" + user.checkFunds());
+                    break;
+                case 2:
+                    System.out.print("Enter deposit amount: ");
+                    double deposit = scanner.nextDouble();
+                    user.addFunds(deposit);
+                    break;
+                case 3:
+                    System.out.print("Enter withdrawal amount: ");
+                    double withdrawal = scanner.nextDouble();
+                    user.removeFunds(withdrawal);
+                    break;
+                case 4:
+                    System.out.print("Enter transfer amount: ");
+                    double transfer = scanner.nextDouble();
+                    System.out.print("Enter recipient account number: ");
+                    String recipient = scanner.next();
+                    user.sendFunds(transfer, recipient);
+                    break;
+                case 5:
+                    System.out.println("\n=== Transaction Log ===");
+                    ArrayList<Record> logs = user.fetchHistory();
+                    if (logs.isEmpty()) {
+                        System.out.println("No transactions yet.");
+                    } else {
+                        for (Record rec : logs) {
+                            System.out.println(rec);
+                        }
+                    }
+                    break;
+                case 6:
+                    System.out.println("\n=== Recent Transactions ===");
+                    ArrayList<Record> recentLogs = user.fetchHistory();
+                    if (recentLogs.isEmpty()) {
+                        System.out.println("No transactions yet.");
+                    } else {
+                        int start = Math.max(0, recentLogs.size() - 5);
+                        for (int i = start; i < recentLogs.size(); i++) {
+                            System.out.println(recentLogs.get(i));
+                        }
+                    }
+                    System.out.println("Current Balance: $" + user.checkFunds());
+                    break;
+                case 7:
+                    System.out.print("Enter new security code: ");
+                    int newCode = scanner.nextInt();
+                    user.updateSecurityCode(newCode);
+                    break;
+                case 8:
+                    System.out.println("\n=== Account Information ===");
+                    System.out.println("Holder: " + user.fetchHolderName());
+                    System.out.println("Account Number: " + user.fetchAccNumber());
+                    System.out.println("Current Balance: $" + user.checkFunds());
+                    break;
+                case 9:
+                    System.out.println("Thank you for banking with us. Goodbye!");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+}
+
